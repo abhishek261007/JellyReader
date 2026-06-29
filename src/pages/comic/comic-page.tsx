@@ -13,7 +13,7 @@ export function ComicPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: item, isLoading } = useQuery({
+  const { data: item, isLoading, error } = useQuery({
     queryKey: ["item", comicId],
     queryFn: () => getItem(comicId!),
     enabled: !!comicId,
@@ -111,8 +111,9 @@ export function ComicPage() {
           </div>
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center p-8">
+        <div className="flex flex-col items-center justify-center gap-2 p-8">
           <p className="text-muted-foreground">Comic not found</p>
+          {error && <p className="text-xs text-destructive text-center max-w-xs">{(error as Error).message}</p>}
           <Button variant="link" asChild>
             <Link to="/libraries">Back to Library</Link>
           </Button>

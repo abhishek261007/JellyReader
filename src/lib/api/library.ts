@@ -1,4 +1,4 @@
-import { apiRequest, getImageUrl } from "./client"
+import { apiRequest, getImageUrl, getUserId } from "./client"
 import type { LibraryOption, ItemsResult, BaseItemDto } from "@/types/jellyfin"
 
 export async function getLibraries(): Promise<LibraryOption[]> {
@@ -34,9 +34,14 @@ export async function getLibraryItems(
   return apiRequest<ItemsResult>(`/Items?${searchParams.toString()}`)
 }
 
+function userPrefix(): string {
+  const uid = getUserId()
+  return uid ? `/Users/${uid}` : "/Users/me"
+}
+
 export async function getItem(itemId: string): Promise<BaseItemDto> {
   return apiRequest<BaseItemDto>(
-    `/Users/me/Items/${itemId}`,
+    `${userPrefix()}/Items/${itemId}`,
   )
 }
 
@@ -62,7 +67,7 @@ export async function getResumableItems(): Promise<BaseItemDto[]> {
   params.set("SortOrder", "Descending")
   params.set("Filters", "IsResumable")
   params.set("Fields", "Overview,Path,UserData,MediaSources")
-  const data = await apiRequest<ItemsResult>(`/Users/me/Items?${params.toString()}`)
+  const data = await apiRequest<ItemsResult>(`${userPrefix()}/Items?${params.toString()}`)
   return data.Items || []
 }
 
@@ -84,10 +89,11 @@ export function getLibraryImageUrl(libraryId: string): string | null {
 }
 
 export async function markFavorite(itemId: string, isFavorite: boolean): Promise<void> {
+  const path = `${userPrefix()}/FavoriteItems/${itemId}`
   if (isFavorite) {
-    await apiRequest(`/Users/me/FavoriteItems/${itemId}`, { method: "POST" })
+    await apiRequest(path, { method: "POST" })
   } else {
-    await apiRequest(`/Users/me/FavoriteItems/${itemId}`, { method: "DELETE" })
+    await apiRequest(path, { method: "DELETE" })
   }
 }
 

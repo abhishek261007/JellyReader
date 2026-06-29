@@ -7,6 +7,7 @@ const DEVICE_ID = "jellyreader-web"
 
 let _serverUrl: string | null = null
 let _token: string | null = null
+let _userId: string | null = null
 
 export function getServerUrl(): string | null {
   return _serverUrl
@@ -22,6 +23,14 @@ export function getToken(): string | null {
 
 export function setToken(token: string | null): void {
   _token = token
+}
+
+export function getUserId(): string | null {
+  return _userId
+}
+
+export function setUserId(userId: string | null): void {
+  _userId = userId
 }
 
 export function getAuthorizationHeader(): string {
@@ -81,6 +90,7 @@ export function getItemDownloadUrl(itemId: string): string | null {
 
 export function logout(): void {
   _token = null
+  _userId = null
   localStorage.removeItem("jellyreader_server")
   localStorage.removeItem("jellyreader_token")
   localStorage.removeItem("jellyreader_user")

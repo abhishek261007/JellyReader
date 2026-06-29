@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import { setServerUrl, setToken, logout as apiLogout } from "@/lib/api/client"
+import { setServerUrl, setToken, setUserId, logout as apiLogout } from "@/lib/api/client"
 import type { JellyfinUser } from "@/types/jellyfin"
 
 interface JellyfinContextType {
@@ -30,17 +30,20 @@ export function JellyfinProvider({ children }: { children: ReactNode }) {
     const savedToken = localStorage.getItem("jellyreader_token")
     const savedUser = localStorage.getItem("jellyreader_user")
     if (savedServer && savedToken && savedUser) {
+      const parsedUser = JSON.parse(savedUser)
       setServerUrl(savedServer)
       setToken(savedToken)
+      setUserId(parsedUser.Id)
       setServerUrlState(savedServer)
       setTokenState(savedToken)
-      setUser(JSON.parse(savedUser))
+      setUser(parsedUser)
     }
   }, [])
 
   const login = (srv: string, tkn: string, usr: JellyfinUser) => {
     setServerUrl(srv)
     setToken(tkn)
+    setUserId(usr.Id)
     setServerUrlState(srv)
     setTokenState(tkn)
     setUser(usr)
