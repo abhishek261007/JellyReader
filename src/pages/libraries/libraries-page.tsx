@@ -8,7 +8,7 @@ import { ComicCard } from "@/components/comic/comic-card"
 import { Library, BookOpen } from "lucide-react"
 
 export function LibrariesPage() {
-  const { data: libraries, isLoading: libsLoading } = useQuery({
+  const { data: libraries, isLoading: libsLoading, error: libsError } = useQuery({
     queryKey: ["libraries"],
     queryFn: getLibraries,
   })

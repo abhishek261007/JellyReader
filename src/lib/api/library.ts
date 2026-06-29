@@ -3,9 +3,7 @@ import type { LibraryOption, ItemsResult, BaseItemDto } from "@/types/jellyfin"
 
 export async function getLibraries(): Promise<LibraryOption[]> {
   const data = await apiRequest<{ Items: LibraryOption[] }>("/Library/MediaFolders")
-  return (data.Items || []).filter(
-    (lib) => lib.Type === "books" || lib.Type === "comics" || lib.Type === "other",
-  )
+  return data.Items || []
 }
 
 export async function getLibraryItems(

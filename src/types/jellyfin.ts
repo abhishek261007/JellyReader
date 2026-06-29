@@ -58,8 +58,9 @@ export interface UserItemDataDto {
 export interface LibraryOption {
   Name: string
   Id: string
-  Type: string
-  ImagePrimary?: string
+  CollectionType?: string
+  ImageTags?: Record<string, string>
+  PrimaryImageTag?: string
   ItemCount?: number
 }
 
