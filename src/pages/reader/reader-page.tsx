@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from "react-router-dom"
-import { getItemDownloadUrl } from "@/lib/api/client"
+import { getItemDownloadUrl, getToken } from "@/lib/api/client"
 import { useEffect, useState, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -18,7 +18,11 @@ interface PageData {
 
 async function downloadAndExtractCbz(downloadUrl: string): Promise<Blob[]> {
   const { unzipSync } = await import("fflate")
-  const response = await fetch(downloadUrl)
+  const headers: Record<string, string> = {}
+  const token = getToken()
+  if (token) headers["X-Emby-Token"] = token
+  const response = await fetch(downloadUrl, { headers })
+  if (!response.ok) throw new Error(`Download failed: ${response.status}`)
   const buffer = await response.arrayBuffer()
   const data = new Uint8Array(buffer)
   const unzipped = unzipSync(data)
@@ -32,7 +36,11 @@ async function downloadAndExtractCbz(downloadUrl: string): Promise<Blob[]> {
       return numA - numB
     })
 
-  return entries.map(([, uint8]) => new Blob([uint8.buffer.slice(0)], { type: "image/jpeg" }))
+  return entries.map(([name, uint8]) => {
+    const ext = name.split(".").pop()?.toLowerCase() || "jpeg"
+    const mime = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : ext === "avif" ? "image/avif" : ext === "gif" ? "image/gif" : "image/jpeg"
+    return new Blob([uint8.buffer.slice(0)], { type: mime })
+  })
 }
 
 export function ReaderPage() {
