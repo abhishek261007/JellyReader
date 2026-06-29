@@ -44,17 +44,17 @@ export function setUserId(userId: string | null): void {
 }
 
 export function getAuthorizationHeader(): string {
-  return `MediaBrowser Client="${CLIENT_NAME}", Device="${DEVICE_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}"`
+  let auth = `MediaBrowser Client="${CLIENT_NAME}", Device="${DEVICE_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}"`
+  if (_token) {
+    auth += `, Token="${_token}"`
+  }
+  return auth
 }
 
 export function getHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
+  return {
     "X-Emby-Authorization": getAuthorizationHeader(),
   }
-  if (_token) {
-    headers["X-Emby-Token"] = _token
-  }
-  return headers
 }
 
 export async function apiRequest<T>(
@@ -63,14 +63,13 @@ export async function apiRequest<T>(
 ): Promise<T> {
   if (!_serverUrl) throw new Error("Server URL not set")
   const url = `${_serverUrl}${path}`
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...getHeaders(),
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  })
+  const headers = {
+    ...getHeaders(),
+    "Content-Type": "application/json",
+    ...options.headers,
+  }
+  console.log("[JellyReader] apiRequest:", path, "hasToken:", !!_token)
+  const response = await fetch(url, { ...options, headers })
   if (!response.ok) {
     const text = await response.text().catch(() => "")
     throw new Error(`API error ${response.status}: ${text}`)
