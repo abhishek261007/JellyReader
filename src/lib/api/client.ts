@@ -44,11 +44,7 @@ export function setUserId(userId: string | null): void {
 }
 
 export function getAuthorizationHeader(): string {
-  let auth = `MediaBrowser Client="${CLIENT_NAME}", Device="${DEVICE_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}"`
-  if (_token) {
-    auth += `, Token="${_token}"`
-  }
-  return auth
+  return `MediaBrowser Client="${CLIENT_NAME}", Device="${DEVICE_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}"`
 }
 
 export function getHeaders(): Record<string, string> {
@@ -67,15 +63,14 @@ export async function apiRequest<T>(
 ): Promise<T> {
   if (!_serverUrl) throw new Error("Server URL not set")
   const url = appendAuth(`${_serverUrl}${path}`)
-  const headers: Record<string, string> = {
-    ...getHeaders(),
-    "Content-Type": "application/json",
-  }
-  if (options.headers) {
-    Object.assign(headers, options.headers)
-  }
-  console.log("[JellyReader] apiRequest:", path, "hasToken:", !!_token)
-  const response = await fetch(url, { ...options, headers, credentials: "include" })
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...getHeaders(),
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string> | undefined),
+    },
+  })
   if (!response.ok) {
     const text = await response.text().catch(() => "")
     throw new Error(`API error ${response.status}: ${text}`)
