@@ -1,0 +1,7 @@
+name = "jellyreader"
+compatibility_date = "2026-06-29"
+
+pages_build_output_dir = "dist"
+
+[env.production]
+routes = [{ pattern = "read.27012610.xyz", zone_name = "27012610.xyz" }]
