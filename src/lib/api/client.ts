@@ -62,7 +62,7 @@ export async function apiRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   if (!_serverUrl) throw new Error("Server URL not set")
-  const url = `${_serverUrl}${path}`
+  const url = appendAuth(`${_serverUrl}${path}`)
   const headers = {
     ...getHeaders(),
     "Content-Type": "application/json",
