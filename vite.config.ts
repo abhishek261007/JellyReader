@@ -11,6 +11,16 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,ico}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/jf\..*$/,
+            handler: 'NetworkOnly',
+          },
+        ],
+        navigateFallback: null,
+      },
       manifest: {
         name: 'JellyReader',
         short_name: 'JellyReader',

@@ -1,28 +1,45 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { getLibraries, getResumableItems } from "@/lib/api/library"
 import { getImageUrl } from "@/lib/api/client"
 import { Link } from "react-router-dom"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ComicCard } from "@/components/comic/comic-card"
-import { Library, BookOpen } from "lucide-react"
+import { Library, BookOpen, RefreshCw } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export function LibrariesPage() {
-  const { data: libraries, isLoading: libsLoading, error: libsError } = useQuery({
+  const queryClient = useQueryClient()
+  const { data: libraries, isLoading: libsLoading, isRefetching: libsRefetching } = useQuery({
     queryKey: ["libraries"],
     queryFn: getLibraries,
   })
 
-  const { data: resumable } = useQuery({
+  const { data: resumable, isRefetching: resumableRefetching } = useQuery({
     queryKey: ["resumable"],
     queryFn: getResumableItems,
   })
 
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["libraries"] })
+    queryClient.invalidateQueries({ queryKey: ["resumable"] })
+  }
+
   return (
     <div className="animate-page-enter space-y-6 p-4 pt-6">
-      <div>
-        <h1 className="text-2xl font-bold">Library</h1>
-        <p className="text-sm text-muted-foreground">Browse your comics</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Library</h1>
+          <p className="text-sm text-muted-foreground">Browse your comics</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRefresh}
+          disabled={libsRefetching || resumableRefetching}
+        >
+          <RefreshCw className={`h-5 w-5 ${libsRefetching || resumableRefetching ? "animate-spin" : ""}`} />
+        </Button>
       </div>
 
       {resumable && resumable.length > 0 && (
@@ -57,25 +74,28 @@ export function LibrariesPage() {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {libraries?.map((lib) => {
-              const coverUrl = getImageUrl(lib.Id, "Thumb", { width: 400, quality: 90 })
+              const coverUrl = getImageUrl(lib.Id, "Primary", { width: 400, quality: 90 })
               return (
                 <Link
                   key={lib.Id}
                   to={`/library/${lib.Id}`}
                   className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-primary/50"
                 >
-                  {coverUrl ? (
+                  <div className="aspect-[4/3] relative">
                     <img
-                      src={coverUrl}
+                      src={coverUrl || ""}
                       alt={lib.Name}
-                      className="aspect-[4/3] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                        (e.target as HTMLImageElement).parentElement!.querySelector(".fallback")?.classList.remove("hidden");
+                      }}
                     />
-                  ) : (
-                    <div className="flex aspect-[4/3] items-center justify-center bg-muted">
+                    <div className="fallback hidden absolute inset-0 flex items-center justify-center bg-muted">
                       <Library className="h-8 w-8 text-muted-foreground" />
                     </div>
-                  )}
+                  </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <h3 className="font-semibold text-white drop-shadow-sm">{lib.Name}</h3>
