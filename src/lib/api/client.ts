@@ -52,9 +52,13 @@ export function getAuthorizationHeader(): string {
 }
 
 export function getHeaders(): Record<string, string> {
-  return {
+  const headers: Record<string, string> = {
     "X-Emby-Authorization": getAuthorizationHeader(),
   }
+  if (_token) {
+    headers["X-Emby-Token"] = _token
+  }
+  return headers
 }
 
 export async function apiRequest<T>(
@@ -63,13 +67,15 @@ export async function apiRequest<T>(
 ): Promise<T> {
   if (!_serverUrl) throw new Error("Server URL not set")
   const url = appendAuth(`${_serverUrl}${path}`)
-  const headers = {
+  const headers: Record<string, string> = {
     ...getHeaders(),
     "Content-Type": "application/json",
-    ...options.headers,
+  }
+  if (options.headers) {
+    Object.assign(headers, options.headers)
   }
   console.log("[JellyReader] apiRequest:", path, "hasToken:", !!_token)
-  const response = await fetch(url, { ...options, headers })
+  const response = await fetch(url, { ...options, headers, credentials: "include" })
   if (!response.ok) {
     const text = await response.text().catch(() => "")
     throw new Error(`API error ${response.status}: ${text}`)
