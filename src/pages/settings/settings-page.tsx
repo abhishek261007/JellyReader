@@ -3,7 +3,7 @@ import { useTheme } from "@/providers/theme"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { useNavigate } from "react-router-dom"
-import { LogOut, Moon, Sun, Monitor, Trash2 } from "lucide-react"
+import { LogOut, Moon, Sun, Monitor, Trash2, RotateCcw } from "lucide-react"
 import { db } from "@/lib/db/db"
 import { useState } from "react"
 
@@ -12,6 +12,7 @@ export function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const navigate = useNavigate()
   const [cleared, setCleared] = useState(false)
+  const [refreshed, setRefreshed] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -90,7 +91,7 @@ export function SettingsPage() {
           <CardTitle className="text-base">Storage</CardTitle>
           <CardDescription>Manage offline data</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-2">
           <Button
             variant="outline"
             size="sm"
@@ -99,6 +100,26 @@ export function SettingsPage() {
           >
             <Trash2 className="h-4 w-4 mr-2" />
             {cleared ? "Cache cleared" : "Clear local cache"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start"
+            onClick={async () => {
+              setRefreshed(true)
+              if ("serviceWorker" in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations()
+                await Promise.all(registrations.map((r) => r.unregister()))
+              }
+              if ("caches" in window) {
+                const keys = await caches.keys()
+                await Promise.all(keys.map((k) => caches.delete(k)))
+              }
+              window.location.reload()
+            }}
+          >
+            <RotateCcw className="h-4 w-4 mr-2" />
+            {refreshed ? "Reloading..." : "Hard refresh & clear SW cache"}
           </Button>
         </CardContent>
       </Card>
