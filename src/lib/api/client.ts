@@ -68,6 +68,12 @@ export async function apiRequest<T>(
   return response.json()
 }
 
+function appendAuth(url: string): string {
+  if (!_token) return url
+  const separator = url.includes("?") ? "&" : "?"
+  return `${url}${separator}api_key=${_token}`
+}
+
 export function getImageUrl(
   itemId: string,
   imageType: string = "Primary",
@@ -80,12 +86,12 @@ export function getImageUrl(
   if (options.quality) params.set("quality", String(options.quality))
   if (options.fill) params.set("fill", "true")
   const query = params.toString()
-  return `${_serverUrl}/Items/${itemId}/Images/${imageType}${query ? `?${query}` : ""}`
+  return appendAuth(`${_serverUrl}/Items/${itemId}/Images/${imageType}${query ? `?${query}` : ""}`)
 }
 
 export function getItemDownloadUrl(itemId: string): string | null {
   if (!_serverUrl) return null
-  return `${_serverUrl}/Items/${itemId}/Download`
+  return appendAuth(`${_serverUrl}/Items/${itemId}/Download`)
 }
 
 export function logout(): void {

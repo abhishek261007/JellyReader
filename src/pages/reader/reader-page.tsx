@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { db, type ReadingProgress } from "@/lib/db/db"
 import { ArrowLeft, ArrowRight, Settings2, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { unzipSync } from "fflate"
 
 type ReadingMode = "single" | "vertical"
 type ReadingDirection = "ltr" | "rtl"
@@ -17,7 +18,6 @@ interface PageData {
 }
 
 async function downloadAndExtractCbz(downloadUrl: string): Promise<Blob[]> {
-  const { unzipSync } = await import("fflate")
   const headers: Record<string, string> = {}
   const token = getToken()
   if (token) headers["X-Emby-Token"] = token
@@ -71,8 +71,15 @@ export function ReaderPage() {
         const downloadUrl = getItemDownloadUrl(comicId)
         if (!downloadUrl) throw new Error("No download URL available")
 
+        console.log("Downloading CBZ from:", downloadUrl)
         const blobs = await downloadAndExtractCbz(downloadUrl)
+        console.log("Extracted", blobs.length, "pages")
+
         if (cancelled) return
+
+        if (blobs.length === 0) {
+          throw new Error("No image files found in CBZ archive")
+        }
 
         const urls = blobs.map((blob) => URL.createObjectURL(blob))
         imageUrlRefs.current = urls
@@ -87,7 +94,9 @@ export function ReaderPage() {
         setLoading(false)
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load comic")
+          const message = err instanceof Error ? err.message : "Failed to load comic"
+          console.error("Reader error:", message, err)
+          setError(message)
           setLoading(false)
         }
       }
