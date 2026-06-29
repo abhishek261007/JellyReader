@@ -43,15 +43,30 @@ Output is in `dist/`.
 
 ## Deployment (Cloudflare Pages)
 
-1. Push this repo to GitHub / GitLab
-2. In Cloudflare Pages, create a new project connected to the repo
-3. Build command: `npm run build`
-4. Build output: `dist`
-5. Custom domain: `read.27012610.xyz`
+### Option A: Git integration (recommended)
+
+1. Push this repo to GitHub
+2. In Cloudflare Dashboard → Pages → Create a project → Connect to Git
+3. Project name: `jellyreader`
+4. Build command: `npm run build`
+5. Build output directory: `dist`
+6. Custom domain: `read.27012610.xyz`
+
+### Option B: Wrangler CLI
+
+```bash
+npx wrangler pages deploy dist --project-name=jellyreader
+```
+
+Then set the custom domain:
+
+```bash
+npx wrangler pages domain set jellyreader read.27012610.xyz
+```
 
 ### SPA Routing
 
-Cloudflare Pages handles SPA routing via the `_redirects` file:
+Cloudflare Pages handles SPA routing via the `_redirects` file (included):
 ```
 /*    /index.html   200
 ```
