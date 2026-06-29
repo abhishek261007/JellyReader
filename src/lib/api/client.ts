@@ -5,9 +5,19 @@ const CLIENT_VERSION = "1.0.0"
 const DEVICE_NAME = "Browser"
 const DEVICE_ID = "jellyreader-web"
 
-let _serverUrl: string | null = null
-let _token: string | null = null
-let _userId: string | null = null
+function restoreServerUrl(): string | null {
+  const val = localStorage.getItem("jellyreader_server")
+  return val ? val.replace(/\/+$/, "") : null
+}
+
+let _serverUrl: string | null = restoreServerUrl()
+let _token: string | null = localStorage.getItem("jellyreader_token")
+let _userId: string | null = (() => {
+  try {
+    const u = localStorage.getItem("jellyreader_user")
+    return u ? JSON.parse(u).Id : null
+  } catch { return null }
+})()
 
 export function getServerUrl(): string | null {
   return _serverUrl

@@ -21,22 +21,27 @@ const JellyfinContext = createContext<JellyfinContextType>({
 })
 
 export function JellyfinProvider({ children }: { children: ReactNode }) {
-  const [serverUrl, setServerUrlState] = useState<string | null>(null)
-  const [token, setTokenState] = useState<string | null>(null)
-  const [user, setUser] = useState<JellyfinUser | null>(null)
+  const [serverUrl, setServerUrlState] = useState<string | null>(() => {
+    const val = localStorage.getItem("jellyreader_server")
+    return val ? val.replace(/\/+$/, "") : null
+  })
+  const [token, setTokenState] = useState<string | null>(() => localStorage.getItem("jellyreader_token"))
+  const [user, setUser] = useState<JellyfinUser | null>(() => {
+    try {
+      const val = localStorage.getItem("jellyreader_user")
+      return val ? JSON.parse(val) : null
+    } catch { return null }
+  })
 
   useEffect(() => {
     const savedServer = localStorage.getItem("jellyreader_server")
     const savedToken = localStorage.getItem("jellyreader_token")
     const savedUser = localStorage.getItem("jellyreader_user")
     if (savedServer && savedToken && savedUser) {
-      const parsedUser = JSON.parse(savedUser)
-      setServerUrl(savedServer)
+      const cleaned = savedServer.replace(/\/+$/, "")
+      setServerUrl(cleaned)
       setToken(savedToken)
-      setUserId(parsedUser.Id)
-      setServerUrlState(savedServer)
-      setTokenState(savedToken)
-      setUser(parsedUser)
+      setUserId(JSON.parse(savedUser).Id)
     }
   }, [])
 
