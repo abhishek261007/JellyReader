@@ -24,12 +24,13 @@ export function setToken(token: string | null): void {
   _token = token
 }
 
+export function getAuthorizationHeader(): string {
+  return `MediaBrowser Client="${CLIENT_NAME}", Device="${DEVICE_NAME}", DeviceId="${DEVICE_ID}", Version="${CLIENT_VERSION}"`
+}
+
 export function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
-    "X-Emby-Client": CLIENT_NAME,
-    "X-Emby-Client-Version": CLIENT_VERSION,
-    "X-Emby-Device-Name": DEVICE_NAME,
-    "X-Emby-Device-Id": DEVICE_ID,
+    "X-Emby-Authorization": getAuthorizationHeader(),
   }
   if (_token) {
     headers["X-Emby-Token"] = _token
